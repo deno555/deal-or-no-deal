@@ -1,7 +1,7 @@
 <template>
 	<div v-if="dealerCalling" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0">
-		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%;">
-			<h1 v-if="!end">{{ title }}</h1>
+		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%; padding: 20px">
+			<h1 style="display: flex; justify-content: center" v-if="!end">{{ title }}</h1>
 			<h1 v-else>Si si istý?</h1>
 			<div style="display: flex;">
 				<h1 style="width: 50%; justify-content: center; display: flex; border-right: 1px solid black" @click="confirmation">ano</h1>
@@ -21,7 +21,7 @@
 			},
 
 			average: {
-				type: Number,
+				type: String,
 				required: false
 			},
 

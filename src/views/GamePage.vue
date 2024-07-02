@@ -1,7 +1,7 @@
 <template>
 	<div class="boxes">
-		<div v-for="box in items" :key="box.id" class="box" @click="pick(box.id)">
-			<h1 class="box__number">{{ box.id }}</h1>
+		<div v-for="box in allItems" :key="box.id">
+			<h1 class="box" v-if="boxAvailable(box.id)" @click="pick(box.id)">{{ box.id }}</h1>
 		</div>
 	</div>
 
@@ -11,43 +11,38 @@
 		<h1 v-if="myBox" class="mainInfo__gameInfo">{{ 'Tvoje cislo: ' + myBox.id }}</h1>
 	</div>
 
-	<DealerPopup :dealerCalling="dealerCalling && !showPrice" @decline="declineOffer" :average="offer" title="Dealer volá, chces zobrat ponuku?" @koniec="koniec = true, dealerCalling = false"/>
-
-	<!-- <div v-if="final" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0">
-		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%">
-			<h1>Chces vymenit s poslednym boxom?</h1>
-			<div style="display: flex;">
-				<h1 style="width: 50%; justify-content: center; display: flex; border-right: 1px solid black" @click="vyhra = myBox.price, final = false, koniec = true">ano</h1>
-				<h1 style="width: 50%; justify-content: center; display: flex" @click="vyhra = items[0].price, final = false, koniec = true">nie</h1>
-			</div>
-		</div>
-	</div> -->
-
-	<FinalOffer :lastDecision="final" @finalPrice="decision"/>
-
-	<div v-if="koniec" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0">
-		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%">
-			<h1>Vyhral si</h1>
-			<h1 style="display: flex; justify-content: center;">{{ vyhra + ' €' }}</h1>
-		</div>
-	</div>
-
-	<div v-if="showPrice" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0" @click="showPrice = false">
-		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%">
-			<h1>Zahodil si</h1>
-			<h1 style="display: flex; justify-content: center;">{{ picked + ' €' }}</h1>
-			<h1 style="display: flex; justify-content: center;">Klikni kdekoľvek</h1>
-		</div>
-	</div>
-
-	<div @click="showTable = !showTable" style="background-color: yellow; display: flex; justify-content: center; position: absolute; bottom: 0; width: 100%;">
+	<div @click="showTable = !showTable" style="background-color: yellow; display: flex; justify-content: center; position: absolute; bottom: 0; width: 100%; height: 5%">
 		<h1 v-if="!showTable" style="margin: 0">\/ Zobraz tabuľku \/</h1>
 		<h1 v-else style="margin: 0">/\ Zobraz tabuľku /\</h1>
 	</div>
 
-	<div v-if="showTable" style="background-color: black; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); z-index: 1; border: 5px solid yellow; z-index: 3; position: absolute; top: 0; width: 99.27%; height: 85%">
-		<div v-for="price in prices" :key="price" style="border: 1px solid yellow;">
-			<p @click="priceAvailable(price)" :class="{'available': priceAvailable(price)}" style="color: white;">{{ price }}</p>
+	<div style="display: flex; justify-content: center">
+		<div v-if="showTable" class="priceTable">
+			<div v-for="price in prices" :key="price" class="priceTable__cell">
+				<p @click="priceAvailable(price)" v-if="priceAvailable(price)" style="color: white;">{{ formatNumber(price) }}</p>
+			</div>
+		</div>
+	</div>
+
+	<DealerPopup :dealerCalling="dealerCalling && !showPrice" @decline="declineOffer" :average="formatNumber(offer)" title="Dealer volá, chces zobrat ponuku?" @koniec="koniec = true, dealerCalling = false"/>
+
+	<FinalOffer :lastDecision="final" @finalPrice="decision"/>
+
+	<router-link :to="{name: 'NewGame'}">
+		<div v-if="koniec" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0">
+			<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%; padding: 20px">
+				<h1 style="display: flex; justify-content: center;">Vyhral si</h1>
+				<h1 style="display: flex; justify-content: center;">{{ formatNumber(vyhra ? vyhra : offer) + ' €' }}</h1>
+				<h1 style="display: flex; justify-content: center;">Klikni kdekoľvek pre novú hru</h1>
+			</div>
+		</div>
+	</router-link>
+
+	<div v-if="showPrice" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0" @click="showPrice = false">
+		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%; padding: 20px">
+			<h1 style="display: flex; justify-content: center">Zahodil si</h1>
+			<h1 style="display: flex; justify-content: center;">{{ formatNumber(picked) + ' €' }}</h1>
+			<h1 style="display: flex; justify-content: center;">Klikni kdekoľvek</h1>
 		</div>
 	</div>
 </template>
@@ -76,7 +71,8 @@ import FinalOffer from '../components/FinalOffer.vue'
 				koniec: false,
 				showPrice: false,
 				picked: 0,
-				showTable: false
+				showTable: false,
+				allItems: []
 			}
 		},
 
@@ -95,6 +91,7 @@ import FinalOffer from '../components/FinalOffer.vue'
 		methods: {
 			newGame(){
 				this.items = []
+				this.allItems = []
 				let randomPrices = this.prices.slice()
 
 				for (let i = randomPrices.length - 1; i > 0; i--) {
@@ -104,6 +101,7 @@ import FinalOffer from '../components/FinalOffer.vue'
 
 				for(let i = 0; i < 26; i++) {
 					this.items.push({id: i+1, price: randomPrices[i]})
+					this.allItems.push({id: i+1, price: randomPrices[i]})
 				}
 			},
 
@@ -140,7 +138,22 @@ import FinalOffer from '../components/FinalOffer.vue'
 					available.push(this.items[i].price)
 				}
 
-				if(!available.includes(price)) {
+				if(available.includes(price)) {
+					return true
+				}
+				else {
+					return false
+				}
+			},
+
+			boxAvailable(id){
+				let available = []
+
+				for(let i = 0; i < this.items.length; i++) {
+					available.push(this.items[i].id)
+				}
+
+				if(available.includes(id)) {
 					return true
 				}
 				else {
@@ -159,6 +172,13 @@ import FinalOffer from '../components/FinalOffer.vue'
 					this.final = false
 					this.koniec = true
 				}
+			},
+
+			formatNumber(num) {
+				if (typeof num !== 'number') {
+					num = parseFloat(num);
+				}
+				return num.toLocaleString('en').replace(/,/g, ' ');
 			}
 		},
 
@@ -191,30 +211,64 @@ import FinalOffer from '../components/FinalOffer.vue'
 </script>
 
 <style lang="sass">
-	body
-		background-color: #031D44
+	a
+		text-decoration: none
+		color: black
 
 	.boxes
+		@media only screen and (max-width: 1030px) 
+			grid-template-columns: repeat(5, 1fr)
+
+		@media only screen and (max-width: 880px) 
+			grid-template-columns: repeat(4, 1fr)
+
+		@media only screen and (max-width: 700px) 
+			grid-template-columns: repeat(3, 1fr)
+
+		// @media only screen and (max-width: 500px) //jebem to nechce to fungovat idk preco
+			// grid-template-columns: repeat(2, 1fr)
+		
 		display: grid 
-		grid-template-columns: repeat(6, minmax(0, 1fr))
+		grid-template-columns: repeat(6, 1fr)
+		position: absolute
+		width: 100%
+		height: 83%
 		
 		.box
-			background-color: #efefed 
-			height: 100px 
-			width: 150px 
+			background-color: #C0C0C0 
+			height: 70% 
+			width: 80% 
 			margin: 10px auto
 			border-radius: 20px
+			font-size: 40px
+			display: flex
+			justify-content: center
+			align-items: center
+			border: 1px solid black
+			background-image: url('../assets/metalCase.png')
 
-			&__number
-				display: flex 
-				justify-content: center 
-				font-size: 40px
+	
+	.boxes > div:nth-child(25)
+		@media only screen and (min-width: 1030px) 
+			grid-column: 3
+
+		@media only screen and (max-width: 880px) 
+			grid-column: 2
+		
+		@media only screen and (max-width: 700px) 
+			grid-column: 1
+
+	.boxes > div:nth-child(26)
+		@media only screen and (max-width: 1030px) 
+			grid-column: 3
+
 	.mainInfo
 		background-color: #B1CFFC
 		display: flex
 		position: absolute
 		bottom: 30px
 		width: 100%
+		height: 12%
 
 		h1
 			padding: 10px
@@ -228,6 +282,24 @@ import FinalOffer from '../components/FinalOffer.vue'
 		display: flex
 		justify-content: center
 
-	.available
-		visibility: hidden
+	.priceTable
+		@media only screen and (max-height: 810px) 
+			grid-template-columns: repeat(13, 1fr)
+
+		grid-template-columns: repeat(2, 1fr)
+		background-color: black 
+		display: grid
+		z-index: 1 
+		border: 7px solid yellow 
+		z-index: 3 
+		position: absolute
+		top: 0 
+		width: 99% 
+		height: 83.5%
+
+		&__cell
+			border: 1px solid yellow
+			display: flex
+			justify-content: center
+			font-weight: 800
 </style>
