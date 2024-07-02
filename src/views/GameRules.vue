@@ -25,5 +25,4 @@
 		&__point
 			color: white
 			font-size: 30px
-
 </style>

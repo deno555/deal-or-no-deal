@@ -5,21 +5,21 @@
 		</div>
 	</div>
 
-	<div class="mainInfo" :class="{'start': start}">
+	<div class="mainInfo" :class="{'centering': start}">
 		<h1 v-if="start">Vyber si box</h1>
 		<h1 v-else class="mainInfo__gameInfo">{{ 'Vyberi do zavolania: ' + callCount }}</h1>
 		<h1 v-if="myBox" class="mainInfo__gameInfo">{{ 'Tvoje cislo: ' + myBox.id }}</h1>
 	</div>
 
-	<div @click="showTable = !showTable" style="background-color: yellow; display: flex; justify-content: center; position: absolute; bottom: 0; width: 100%; height: 5%">
-		<h1 v-if="!showTable" style="margin: 0">\/ Zobraz tabuľku \/</h1>
-		<h1 v-else style="margin: 0">/\ Zobraz tabuľku /\</h1>
+	<div @click="showTable = !showTable" class="tablePopup">
+		<h1 v-if="!showTable">\/ Zobraz tabuľku \/</h1>
+		<h1 v-else>/\ Zobraz tabuľku /\</h1>
 	</div>
 
-	<div style="display: flex; justify-content: center">
+	<div class="centering">
 		<div v-if="showTable" class="priceTable">
 			<div v-for="price in prices" :key="price" class="priceTable__cell">
-				<p @click="priceAvailable(price)" v-if="priceAvailable(price)" style="color: white;">{{ formatNumber(price) }}</p>
+				<p @click="priceAvailable(price)" v-if="priceAvailable(price)" style="color: white">{{ formatNumber(price) }}</p>
 			</div>
 		</div>
 	</div>
@@ -29,20 +29,20 @@
 	<FinalOffer :lastDecision="final" @finalPrice="decision"/>
 
 	<router-link :to="{name: 'NewGame'}">
-		<div v-if="koniec" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0">
-			<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%; padding: 20px">
-				<h1 style="display: flex; justify-content: center;">Vyhral si</h1>
-				<h1 style="display: flex; justify-content: center;">{{ formatNumber(vyhra ? vyhra : offer) + ' €' }}</h1>
-				<h1 style="display: flex; justify-content: center;">Klikni kdekoľvek pre novú hru</h1>
+		<div v-if="koniec" class="winScreen">
+			<div class="winScreen__main">
+				<h1 class="centering">Vyhral si</h1>
+				<h1 class="centering">{{ formatNumber(vyhra ? vyhra : offer) + ' €' }}</h1>
+				<h1 class="centering">Klikni kdekoľvek pre novú hru</h1>
 			</div>
 		</div>
 	</router-link>
 
-	<div v-if="showPrice" style="background-color: black; background-color: rgb(0,0,0, 0.5); width: 100%; height: 100%; position: fixed; z-index: 2; top: 0" @click="showPrice = false">
-		<div style="background-color: red; z-index: 2; position: fixed; left: 50%; transform: translate(-50%, 0); top: 50%; padding: 20px">
-			<h1 style="display: flex; justify-content: center">Zahodil si</h1>
-			<h1 style="display: flex; justify-content: center;">{{ formatNumber(picked) + ' €' }}</h1>
-			<h1 style="display: flex; justify-content: center;">Klikni kdekoľvek</h1>
+	<div v-if="showPrice" class="pickScreen" @click="showPrice = false">
+		<div class="pickScreen__main">
+			<h1 class="centering">Zahodil si</h1>
+			<h1 class="centering">{{ formatNumber(picked) + ' €' }}</h1>
+			<h1 class="centering">Klikni kdekoľvek</h1>
 		</div>
 	</div>
 </template>
@@ -215,6 +215,10 @@ import FinalOffer from '../components/FinalOffer.vue'
 		text-decoration: none
 		color: black
 
+	.centering
+		display: flex 
+		justify-content: center
+
 	.boxes
 		@media only screen and (max-width: 1030px) 
 			grid-template-columns: repeat(5, 1fr)
@@ -224,9 +228,6 @@ import FinalOffer from '../components/FinalOffer.vue'
 
 		@media only screen and (max-width: 700px) 
 			grid-template-columns: repeat(3, 1fr)
-
-		// @media only screen and (max-width: 500px) //jebem to nechce to fungovat idk preco
-			// grid-template-columns: repeat(2, 1fr)
 		
 		display: grid 
 		grid-template-columns: repeat(6, 1fr)
@@ -277,16 +278,27 @@ import FinalOffer from '../components/FinalOffer.vue'
 			width: 50%
 			display: flex
 			justify-content: center
+	
+	.tablePopup
+		background-color: yellow 
+		display: flex 
+		justify-content: center 
+		position: absolute 
+		bottom: 0 
+		width: 100% 
+		height: 5%
 
-	.start
-		display: flex
-		justify-content: center
+		h1
+			margin: 0
 
 	.priceTable
 		@media only screen and (max-height: 810px) 
 			grid-template-columns: repeat(13, 1fr)
+			grid-auto-flow: row
+			grid-template-rows: none
 
-		grid-template-columns: repeat(2, 1fr)
+		grid-template-rows: repeat(13, 1fr)
+		grid-auto-flow: column
 		background-color: black 
 		display: grid
 		z-index: 1 
@@ -302,4 +314,40 @@ import FinalOffer from '../components/FinalOffer.vue'
 			display: flex
 			justify-content: center
 			font-weight: 800
+	
+	.winScreen
+		background-color: black 
+		background-color: rgb(0,0,0, 0.5) 
+		width: 100% 
+		height: 100% 
+		position: fixed 
+		z-index: 2 
+		top: 0
+
+		&__main
+			background-color: red 
+			z-index: 2 
+			position: fixed 
+			left: 50% 
+			transform: translate(-50%, 0) 
+			top: 50% 
+			padding: 20px
+	
+	.pickScreen
+		background-color: black 
+		background-color: rgb(0,0,0, 0.5) 
+		width: 100%
+		height: 100% 
+		position: fixed
+		z-index: 2 
+		top: 0
+
+		&__main
+			background-color: red 
+			z-index: 2 
+			position: fixed
+			left: 50% 
+			transform: translate(-50%, 0) 
+			top: 50% 
+			padding: 20px
 </style>
